@@ -1,0 +1,5 @@
+In einer einfach verknüpften Liste enthält jedes Element (allgemein als "Knoten" bezeichnet) zwei Elemente: die Daten (in diesem Fall ein Kundenobjekt) und einen Verweis auf den nächsten Knoten in der Folge. Die Liste enthält einen Verweis auf den ersten Knoten (hier: kundenliste). Der Verweis jedes Knotens zeigt auf den nächsten Knoten in der Liste. Der letzte Knoten verweist auf null, was das Ende der Liste anzeigt.
+
+Diese Struktur ermöglicht ein effizientes Einfügen und Löschen von Elementen am Anfang der Liste, da Sie nur die Referenzen aktualisieren müssen. Um jedoch auf Elemente am Ende oder in der Mitte der Liste zuzugreifen oder diese zu löschen, muss die Liste von Anfang an durchlaufen werden, was insbesondere bei langen Listen weniger effizient sein kann.
+
+In Java könnte dies mit einer Kundenklasse implementiert werden, die jeden Knoten repräsentiert und über Instanzvariablen für die Kundendaten und einen Verweis auf das nächste Kundenobjekt in der Liste verfügt. Die Klasse Kundenliste würde die Liste verwalten, einschließlich des Hinzufügens und Entfernens von Knoten und des Durchlaufens der Liste, um Kundendaten zu finden oder auszudrucken.
