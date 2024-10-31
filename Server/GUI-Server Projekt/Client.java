@@ -91,7 +91,7 @@ public class Client extends JFrame {
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             new Thread(new IncomingReader()).start();
         } catch (IOException e) {
-            JOptionPane.showMessageDialog(this, "Unable to connect to the server. Please try again.", "Connection Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Verbindung zum Server fehlgeschlagen.", "Connection Error", JOptionPane.ERROR_MESSAGE);
             connectToServer();
         }
     }
@@ -155,12 +155,12 @@ public class Client extends JFrame {
     private void appendToChat(String message, boolean isServerMessage, boolean isSuccess) {
         StyledDocument doc = chatArea.getStyledDocument();
         SimpleAttributeSet style = new SimpleAttributeSet();
-
+    
         if (isServerMessage) {
             StyleConstants.setFontFamily(style, "SansSerif");
             StyleConstants.setBold(style, true);
             StyleConstants.setAlignment(style, StyleConstants.ALIGN_CENTER);
-
+    
             if (isSuccess) {
                 StyleConstants.setForeground(style, Color.BLACK);
             } else {
@@ -171,10 +171,11 @@ public class Client extends JFrame {
             StyleConstants.setForeground(style, Color.BLACK);
             StyleConstants.setAlignment(style, StyleConstants.ALIGN_LEFT);
         }
-
+    
         try {
-            doc.insertString(doc.getLength(), message + "\n", style);
-            doc.setParagraphAttributes(doc.getLength(), 1, style, false);
+            int length = doc.getLength();
+            doc.insertString(length, message + "\n", style);
+            doc.setParagraphAttributes(length, message.length(), style, false);
             chatArea.setCaretPosition(doc.getLength());
         } catch (BadLocationException e) {
             e.printStackTrace();
@@ -192,6 +193,16 @@ public class Client extends JFrame {
                         SwingUtilities.invokeLater(() -> addLogoutButton());
                     } else if (message.startsWith("LOGIN FAILED")) {
                         appendToChat(message, true, false);
+                    } else if (message.startsWith("LOGOUT")) {
+                        appendToChat(message, true, false);
+                        Timer timer = new Timer(2000, new ActionListener() {
+                            @Override
+                            public void actionPerformed(ActionEvent e) {
+                                SwingUtilities.invokeLater(() -> logout());
+                            }
+                        });
+                        timer.setRepeats(false);
+                        timer.start();
                     } else if (message.contains("betreten")) {
                         appendToChat(message, true, true);
                     } else if (message.contains("verlassen")) {
@@ -202,12 +213,13 @@ public class Client extends JFrame {
                 }
             } catch (IOException e) {
                 showError("Verbindung geschlossen.");
+                SwingUtilities.invokeLater(() -> logout());
             }
         }
     }
 
     private void showError(String message) {
-        JOptionPane.showMessageDialog(this, message, "Error", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(this, message, "Information", JOptionPane.ERROR_MESSAGE);
     }
 
     public static void main(String[] args) {
