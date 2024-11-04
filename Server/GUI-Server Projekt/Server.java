@@ -19,17 +19,17 @@ public class Server {
     private static int maxClients;
 
     public static void main(String[] args) {
-        setupLogger();
-        loadUserCredentials();
-        getMaxClientsFromUser();
+        setupLogger(); // Setup the logger
+        loadUserCredentials(); // Load user credentials
+        getMaxClientsFromUser(); // Get the maximum number of clients from the user
 
         try {
-            startServer();
-            monitorClientConnections();
+            startServer(); // Start the server
+            monitorClientConnections(); // Monitor client connections
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
-            shutdownServer();
+            shutdownServer(); // Shutdown the server
         }
     }
 
@@ -52,6 +52,7 @@ public class Server {
     }
 
     private static void loadUserCredentials() {
+        // Load predefined user credentials
         userCredentials.put("user1", "pass");
         userCredentials.put("user2", "pass");
         userCredentials.put("user3", "pass");
@@ -60,6 +61,7 @@ public class Server {
     }
 
     private static void getMaxClientsFromUser() {
+        // Get the maximum number of clients from the user
         Scanner scanner = new Scanner(System.in);
         System.out.print("Geben Sie die maximale Anzahl der Clients ein: ");
         maxClients = scanner.nextInt();
@@ -67,6 +69,7 @@ public class Server {
     }
 
     private static void startServer() throws IOException {
+        // Start the server and schedule a task to print the number of logged-in users every 2 seconds
         serverSocket = new ServerSocket(PORT);
         System.out.println("Server gestartet auf Port " + PORT);
 
@@ -75,6 +78,7 @@ public class Server {
     }
 
     private static void monitorClientConnections() throws IOException {
+        // Monitor client connections and accept new clients if the maximum number of clients is not reached
         while (running) {
             try {
                 if (clientHandlers.size() < maxClients) {
@@ -90,6 +94,7 @@ public class Server {
     }
 
     private static void printMaxClientsReachedMessage() {
+        // Print a message when the maximum number of clients is reached
         if (!shutdownMessagePrinted) {
             System.out.println("Maximale Anzahl von Clients erreicht.");
             shutdownMessagePrinted = true;
@@ -97,6 +102,7 @@ public class Server {
     }
 
     private static void handleSocketException(SocketException e) {
+        // Handle socket exceptions
         if (!running && !shutdownMessagePrinted) {
             System.out.println("Server wurde heruntergefahren.");
             shutdownMessagePrinted = true;
@@ -106,6 +112,7 @@ public class Server {
     }
 
     private static void shutdownServer() {
+        // Shutdown the server and logout all users
         try {
             logoutAllUsers();
             closeServerSocket();
@@ -121,6 +128,7 @@ public class Server {
     }
 
     private static void logoutAllUsers() {
+        // Logout all users and close their connections
         for (ClientHandler clientHandler : clientHandlers) {
             clientHandler.out.println("LOGOUT - Server wird heruntergefahren");
             clientHandler.closeConnection();
@@ -128,18 +136,21 @@ public class Server {
     }
 
     private static void closeServerSocket() throws IOException {
+        // Close the server socket
         if (serverSocket != null && !serverSocket.isClosed()) {
             serverSocket.close();
         }
     }
 
     private static void shutdownExecutor() {
+        // Shutdown the executor
         if (executor != null && !executor.isShutdown()) {
             executor.shutdown();
         }
     }
 
     private static void printShutdownMessage() {
+        // Print a shutdown message
         if (!shutdownMessagePrinted) {
             System.out.println("Server wurde heruntergefahren.");
             logger.info("Server wurde heruntergefahren.");
@@ -148,6 +159,7 @@ public class Server {
     }
 
     private static void closeLoggerFileHandler() {
+        // Close the logger file handler
         for (Handler handler : logger.getHandlers()) {
             if (handler instanceof FileHandler) {
                 handler.close();
@@ -169,24 +181,26 @@ public class Server {
         @Override
         public void run() {
             try {
-                setupStreams();
-                handleLogin();
-                handleMessages();
+                setupStreams(); // Setup input and output streams
+                handleLogin(); // Handle user login
+                handleMessages(); // Handle incoming messages
             } catch (SocketException e) {
                 handleSocketException(e);
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
-                closeConnection();
+                closeConnection(); // Close the connection
             }
         }
 
         private void setupStreams() throws IOException {
+            // Setup input and output streams
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             out = new PrintWriter(socket.getOutputStream(), true);
         }
 
         private void handleLogin() throws IOException {
+            // Handle user login
             while (true) {
                 String loginMessage = in.readLine();
                 if (loginMessage != null && loginMessage.startsWith("LOGIN ")) {
@@ -208,6 +222,7 @@ public class Server {
         }
 
         private boolean authenticateUser(String username, String password) {
+            // Authenticate the user
             if (userCredentials.containsKey(username) && userCredentials.get(username).equals(password)) {
                 synchronized (loggedInUsers) {
                     if (loggedInUsers.contains(username)) {
@@ -229,12 +244,14 @@ public class Server {
         }
 
         private void logUserLogin() {
+            // Log user login
             String clientIP = socket.getInetAddress().getHostAddress();
             String loginTimestamp = dateFormat.format(new Date());
             logger.info("LOGIN - User: " + username + ", IP: " + clientIP + ", Time: " + loginTimestamp);
         }
 
         private void handleMessages() throws IOException {
+            // Handle incoming messages
             String message;
             while ((message = in.readLine()) != null) {
                 if (message.equalsIgnoreCase("logout")) {
@@ -249,6 +266,7 @@ public class Server {
         }
 
         private boolean isAdminShutdownCommand(String message) {
+            // Check if the message is an admin shutdown command
             if (username.equals("admin") && message.equals("SHUTDOWN")) {
                 running = false;
                 logAdminShutdown();
@@ -258,12 +276,14 @@ public class Server {
         }
 
         private void logAdminShutdown() {
+            // Log admin shutdown
             String clientIP = socket.getInetAddress().getHostAddress();
             String timestamp = dateFormat.format(new Date());
             logger.info("SHUTDOWN - User: " + username + ", IP: " + clientIP + ", Time: " + timestamp);
         }
 
         private void broadcast(String message) {
+            // Broadcast a message to all logged-in users
             for (ClientHandler clientHandler : clientHandlers) {
                 if (clientHandler.loggedIn) {
                     clientHandler.out.println(message);
@@ -272,6 +292,7 @@ public class Server {
         }
 
         private void closeConnection() {
+            // Close the connection and remove the user from the logged-in users list
             try {
                 if (socket != null && !socket.isClosed()) {
                     socket.close();
